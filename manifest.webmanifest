@@ -1,0 +1,16 @@
+{
+  "name": "Bewerbungslotse",
+  "short_name": "Bewerbung",
+  "description": "Kostenloser Bewerbungs-Assistent: Lebenslauf, Berufe, Stellen, Anschreiben, Übersicht.",
+  "lang": "de",
+  "start_url": "./#start",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f7fa",
+  "theme_color": "#1f5f8b",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

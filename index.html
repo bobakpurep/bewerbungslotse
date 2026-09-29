@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bewerbungslotse</title>
+<meta name="description" content="Kostenloser Bewerbungs-Assistent: Lebenslauf einlesen, passende Berufe und Stellen finden, Anschreiben erstellen, Bewerbungen verwalten. Daten bleiben auf dem Gerät.">
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bewerbungslotse">
+<style>
+/* Design: ruhig, viel Weißraum, weiche Karten, Milchglas-Leisten – eigener Stil, keine fremden Marken-Assets */
+:root{
+  --bg:#f5f5f7; --card:#ffffff; --field:#f2f2f5; --text:#1d1d1f; --muted:#6e6e73; --line:rgba(0,0,0,.08);
+  --accent:#0a6cdf; --accent-weak:rgba(10,108,223,.10); --ok:#1a7f37; --ok-weak:rgba(26,127,55,.12);
+  --warn:#b45a00; --warn-weak:rgba(214,120,0,.12); --bad:#d0142c; --bad-weak:rgba(208,20,44,.10);
+  --radius:18px; --shadow:0 1px 2px rgba(0,0,0,.04),0 6px 20px rgba(0,0,0,.05); --glass:rgba(245,245,247,.72);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#000;--card:#1c1c1e;--field:#2c2c2e;--text:#f5f5f7;--muted:#98989d;--line:rgba(255,255,255,.10);
+  --accent:#3b9bff;--accent-weak:rgba(59,155,255,.16);--ok:#34c759;--ok-weak:rgba(52,199,89,.16);--warn:#ff9f0a;--warn-weak:rgba(255,159,10,.16);--bad:#ff453a;--bad-weak:rgba(255,69,58,.16);
+  --shadow:none;--glass:rgba(22,22,24,.72);}
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:17px/1.47 -apple-system,BlinkMacSystemFont,"Segoe UI Variable Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--line);padding:12px 20px;display:flex;align-items:center;gap:10px}
+header.top h1{font-size:17px;font-weight:650;margin:0;flex:1;display:flex;align-items:center;gap:8px;letter-spacing:-.02em}
+header.top h1::before{content:"";width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#0a6cdf,#34c759);display:inline-block}
+header.top .badge{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45vw}
+@media (max-width:520px){header.top .badge{max-width:32vw}}
+main{max-width:1000px;margin:0 auto;padding:24px 20px}
+section.view{display:none}
+section.view.active{display:block;animation:fadeUp .28s var(--ease)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h2{font-size:30px;line-height:1.15;font-weight:700;letter-spacing:-.025em;margin:4px 0 12px}
+h3{font-size:19px;font-weight:650;letter-spacing:-.015em;margin:20px 0 8px}
+h4{font-weight:650}
+p.lead{color:var(--muted);margin-top:0;font-size:18px;max-width:62ch}
+.card{background:var(--card);border:0;border-radius:var(--radius);padding:20px;margin:0 0 16px;box-shadow:var(--shadow)}
+@media (prefers-color-scheme: dark){.card,.module,.job{border:1px solid var(--line)}}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;font-weight:500}
+input[type=text],input[type=email],input[type=tel],input[type=number],input[type=url],input[type=password],input[type=date],input[type=search],select,textarea{
+  width:100%;padding:11px 14px;border:1px solid transparent;border-radius:12px;background:var(--field);color:var(--text);font:inherit;font-size:16px;transition:box-shadow .15s,border-color .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-weak)}
+select{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 55%,calc(100% - 13px) 55%;background-size:5px 5px;background-repeat:no-repeat;padding-right:34px}
+textarea{min-height:120px;resize:vertical;line-height:1.55}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 20px;border-radius:980px;border:0;background:var(--accent);color:#fff;font:inherit;font-size:16px;font-weight:600;cursor:pointer;text-decoration:none;min-height:44px;transition:transform .12s var(--ease),filter .15s,background .15s}
+.btn:hover{filter:brightness(1.06);text-decoration:none} .btn:active{transform:scale(.97)}
+.btn.sec{background:var(--accent-weak);color:var(--accent)}
+.btn.small{padding:7px 14px;min-height:34px;font-size:14px}
+.btn.danger{background:var(--bad-weak);color:var(--bad)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+code{background:var(--field);padding:1px 6px;border-radius:6px;font-size:.9em}
+mark{background:var(--warn-weak);color:inherit;border-radius:4px;padding:0 2px}
+/* Schalter statt Häkchen */
+input[type=checkbox]{appearance:none;-webkit-appearance:none;flex:0 0 auto;width:38px!important;height:23px!important;border-radius:999px;background:var(--line);position:relative;cursor:pointer;margin:0 6px 0 0!important;vertical-align:middle;transition:background .2s var(--ease)}
+@media (prefers-color-scheme: dark){input[type=checkbox]{background:#3a3a3c}}
+input[type=checkbox]::after{content:"";position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s var(--ease)}
+input[type=checkbox]:checked{background:var(--ok)} input[type=checkbox]:checked::after{transform:translateX(15px)}
+input[type=checkbox]:focus-visible{box-shadow:0 0 0 4px var(--accent-weak)}
+input[type=radio]{accent-color:var(--accent);width:18px;height:18px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:999px;background:var(--field);color:var(--text);font-size:14px;border:0}
+.chip button{border:0;background:none;color:var(--accent);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;font-weight:600}
+.chip.hit{background:var(--ok-weak)} .chip.miss{background:var(--bad-weak)}
+/* Segment-Steuerung */
+.tabs,.seg{display:inline-flex;gap:2px;padding:3px;border-radius:12px;background:var(--field);margin-bottom:14px;flex-wrap:wrap;max-width:100%}
+.tabs{display:flex}
+.tabs button,.seg button{flex:1;min-width:96px;padding:8px 12px;border-radius:9px;border:0;background:transparent;color:var(--text);font:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:background .2s,box-shadow .2s}
+.tabs button.on,.seg button.on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.12);font-weight:600}
+.seg{margin:0}.seg button{min-width:0;padding:6px 10px;font-size:13px}
+.module{border:0;border-radius:var(--radius);padding:18px;margin-bottom:12px;background:var(--card);box-shadow:var(--shadow)}
+.module > .head{display:flex;gap:12px;align-items:flex-start}
+.module .subs{margin:12px 0 0 50px;display:grid;gap:10px}
+.module .subs label{display:flex;gap:10px;align-items:flex-start;color:var(--text);font-size:15px;margin:0;font-weight:500;transition:opacity .2s}
+.module .subs span.expl{display:block;color:var(--muted);font-size:13px;font-weight:400}
+.job{border:0;border-radius:var(--radius);padding:18px;margin-bottom:12px;background:var(--card);box-shadow:var(--shadow);transition:transform .2s var(--ease),box-shadow .2s}
+.job:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(0,0,0,.05),0 10px 28px rgba(0,0,0,.07)}
+.job .top{display:flex;gap:14px;align-items:flex-start}
+/* Passung als Ring */
+.score{--c:var(--accent);flex:0 0 60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;letter-spacing:-.02em;
+  background:radial-gradient(closest-side,var(--card) 76%,transparent 78% 100%),conic-gradient(var(--c) calc(var(--p,0)*1%),var(--field) 0);color:var(--c)}
+.score.hi{--c:var(--ok)} .score.mid{--c:var(--warn)} .score.lo{--c:var(--bad)}
+.job h4{margin:0 0 4px;font-size:17px;letter-spacing:-.015em}
+.job .meta{color:var(--muted);font-size:14px}
+.job details{margin-top:10px}
+details summary{cursor:pointer;color:var(--accent);font-size:14px;font-weight:500;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"›";display:inline-block;margin-right:6px;transition:transform .2s var(--ease)}
+details[open] summary::before{transform:rotate(90deg)}
+.job .desc{white-space:pre-wrap;font-size:14px;max-height:280px;overflow:auto;border-top:1px solid var(--line);margin-top:10px;padding-top:10px;color:var(--muted)}
+.bar{height:6px;background:var(--field);border-radius:4px;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.status{font-size:12px;padding:2px 9px;border-radius:999px;background:var(--accent-weak);color:var(--accent);font-weight:600}
+.notice{padding:14px 16px;border-radius:14px;background:var(--warn-weak);color:var(--text);font-size:14px;margin:10px 0}
+.notice.info{background:var(--accent-weak)} .notice.ok{background:var(--ok-weak)} .notice.bad{background:var(--bad-weak)} .notice.warn{background:var(--warn-weak,rgba(255,159,10,.14))}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+/* Tab-Leiste */
+nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-top:1px solid var(--line);display:flex;overflow-x:auto;padding-bottom:env(safe-area-inset-bottom);scrollbar-width:none}
+nav.bottom::-webkit-scrollbar{display:none}
+nav.bottom button{flex:1 0 66px;border:0;background:none;color:var(--muted);padding:8px 4px 6px;font:500 11px/1.2 inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .15s}
+nav.bottom button .ic{width:24px;height:24px;display:block}
+nav.bottom button .ic svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+nav.bottom button.on{color:var(--accent)}
+nav.bottom button{position:relative}
+nav.bottom button[data-badge]:not([data-badge=""])::after{content:attr(data-badge);position:absolute;top:3px;right:calc(50% - 20px);min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--bad);color:#fff;font:600 10px/16px inherit;text-align:center}
+/* Pinnwand (Bewerbungen) */
+.kboard{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.kcol{flex:0 0 260px;background:var(--field);border-radius:16px;padding:10px;min-height:140px;scroll-snap-align:start;transition:background .15s}
+.kcol.over{background:var(--accent-weak);outline:2px dashed var(--accent)}
+.khead{font-weight:650;font-size:14px;margin:2px 4px 8px;display:flex;justify-content:space-between}
+.kcard{background:var(--card);border-radius:12px;padding:10px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04);cursor:grab}
+.kcard.drag{opacity:.5}
+.ktitle{font-weight:600;font-size:14px;line-height:1.3;margin-bottom:2px}
+.kact{display:flex;gap:6px;margin-top:8px}.kact .btn{padding:4px 10px}
+.kempty{padding:14px 4px;text-align:center}
+@media (min-width:900px){.kcol{flex:1 0 200px}}
+.hidden{display:none!important}
+.progress{font-size:14px;color:var(--muted)}
+#toast{position:fixed;left:50%;bottom:100px;transform:translate(-50%,8px);background:rgba(29,29,31,.92);color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;opacity:0;transition:opacity .25s var(--ease),transform .25s var(--ease);pointer-events:none;z-index:9;max-width:90vw;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#print{display:none}
+@media (min-width:900px){
+  nav.bottom{position:sticky;top:51px;bottom:auto;border-top:0;border-bottom:1px solid var(--line);justify-content:center;padding:4px 0}
+  nav.bottom button{flex:0 0 auto;flex-direction:row;gap:6px;font-size:13px;padding:8px 12px;border-radius:10px;margin:0 2px}
+  nav.bottom button .ic,nav.bottom button .ic svg{width:18px;height:18px}
+  nav.bottom button.on{background:var(--accent-weak)}
+  body{padding-bottom:0} #toast{bottom:30px}
+}
+@media (max-width:420px){ h2{font-size:26px} main{padding:18px 16px} .card{padding:16px} .module .subs{margin-left:0} }
+@media (prefers-reduced-motion: reduce){ *,*::before,*::after{animation:none!important;transition:none!important} }
+@media print{
+  body{background:#fff;color:#000;padding:0}
+  header.top,nav.bottom,main,#toast{display:none!important}
+  #print{display:block;font:11pt/1.45 Arial,Helvetica,sans-serif;color:#000;padding:0}
+  #print h1{font-size:18pt;margin:0 0 4pt} #print h2{font-size:12pt;border-bottom:1px solid #000;margin:14pt 0 6pt}
+  #print .letter{white-space:pre-wrap}
+  #print table td{border:0;padding:2pt 6pt 2pt 0}
+  @page{margin:20mm 20mm 20mm 25mm}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Bewerbungslotse</h1>
+  <span class="badge" id="hdrStatus">Daten bleiben auf diesem Gerät</span>
+</header>
+<nav class="bottom" id="nav"></nav>
+
+<main>
+<!-- START -->
+<section class="view" id="v-start">
+  <div class="notice ok hidden" id="localBanner"><b>Lokaler Modus aktiv:</b> Alles ist automatisch eingerichtet. Die Suche läuft über dieses Programm auf deinem Computer – über 35 Portale, Jobsuchmaschinen und Suchmaschinen gleichzeitig. Einfach Lebenslauf laden und suchen. Funktioniert etwas nicht? <a href="#settings" onclick="setTimeout(()=>document.getElementById('selftestCard').scrollIntoView(),50)">Selbsttest starten</a>.</div>
+  <div class="notice warn hidden" id="dueBanner"></div>
+  <h2>Was möchtest du nutzen?</h2>
+  <p class="lead">Wähle die Module und Funktionen aus, die du brauchst. Alles läuft ohne KI. KI ist nur ein optionales Extra mit eigenem Schlüssel. Du kannst die Auswahl jederzeit ändern.</p>
+  <div id="moduleList"></div>
+  <div class="notice info small"><b>Datenschutz:</b> Lebenslauf, Profil und Bewerbungen werden nur im Speicher dieses Browsers abgelegt. Daten verlassen das Gerät nur bei Stellensuche (Suchbegriff und Ort), optionaler KI (Profil- und Stellentext an den gewählten Anbieter) und optionalem Auto-Versand (an deinen Webhook).</div>
+  <div class="row"><button class="btn" data-go="cv">Weiter: Lebenslauf</button></div>
+</section>
+
+<!-- LEBENSLAUF -->
+<section class="view" id="v-cv">
+  <h2>Schritt 0: Lebenslauf</h2>
+  <p class="lead">Lade deinen Lebenslauf hoch, fotografiere ihn ab oder erstelle ihn neu. Danach prüfst du die erkannten Angaben.</p>
+  <div class="tabs" id="cvTabs">
+    <button data-tab="upload" class="on">📄 Hochladen</button>
+    <button data-tab="photo">📷 Fotografieren</button>
+    <button data-tab="create">✏️ Erstellen</button>
+  </div>
+  <div class="card" data-pane="upload">
+    <label for="cvFile">PDF, Word (DOCX), Text-Datei oder Bild (JPG/PNG)</label>
+    <input type="file" id="cvFile" multiple accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/*">
+    <p class="small muted">Jede Datei wird auf Lesbarkeit geprüft. Gescannte PDFs und Seiten ohne lesbaren Text werden automatisch per Texterkennung (OCR) gelesen; Bilder werden dafür vergrößert, kontrastverstärkt und bei Bedarf gedreht.</p>
+  </div>
+  <div class="card hidden" data-pane="photo">
+    <label for="cvPhoto">Foto aufnehmen oder Bild auswählen (mehrere Seiten möglich)</label>
+    <input type="file" id="cvPhoto" accept="image/*" capture="environment" multiple>
+    <p class="small muted">Tipp: gerade von oben, gutes Licht, ganze Seite im Bild. Die Texterkennung (Tesseract) läuft auf dem Gerät; beim ersten Mal werden ca. 10–20 MB Sprachdaten geladen.</p>
+  </div>
+  <div class="card hidden" data-pane="create">
+    <p class="small muted" style="margin-top:0">Fülle unten das Profil direkt aus. Daraus kann ein Lebenslauf als PDF erzeugt werden.</p>
+  </div>
+  <div class="card" id="cvTextCard">
+    <div class="row" style="justify-content:space-between"><label for="cvText" style="margin:0">Erkannter Text (bearbeitbar)</label><span class="progress" id="cvProgress"></span></div>
+    <textarea id="cvText" placeholder="Hier erscheint der Text des Lebenslaufs. Du kannst ihn auch einfügen."></textarea>
+    <div id="cvQuality"></div>
+    <div class="row" style="margin-top:8px"><button class="btn" id="btnParse">Angaben automatisch erkennen</button><button class="btn sec" id="btnParseAI" data-needs="ai">Mit KI erkennen (optional)</button></div>
+    <div class="row small" style="margin-top:6px"><button class="btn sec small" id="btnQCheck">Lesbarkeit prüfen</button><button class="btn sec small" id="btnClean">Text bereinigen</button><button class="btn sec small hidden" id="btnReOcr">Mit Texterkennung neu lesen</button><button class="btn sec small" id="btnExportTxt">Als Text speichern (für KI)</button><button class="btn sec small hidden" id="btnSearchPdf">Als durchsuchbare PDF speichern</button></div>
+  </div>
+
+  <div class="card" id="zCard">
+    <h3 style="margin-top:0">Zeugnisse (optional)</h3>
+    <p class="small muted" style="margin-top:0">Arbeits-, Ausbildungs- und Abschlusszeugnisse, Zertifikate: hochladen oder fotografieren. Daraus werden zusätzliche Kompetenzen und dein genauer Abschluss erkannt. Alles bleibt auf dem Gerät.</p>
+    <div class="row"><label class="btn sec small" style="margin:0">📄 Dateien wählen<input type="file" id="zFile" multiple accept=".pdf,.docx,.txt,image/*" class="hidden"></label>
+      <label class="btn sec small" style="margin:0">📷 Fotografieren<input type="file" id="zPhoto" accept="image/*" capture="environment" multiple class="hidden"></label>
+      <span class="progress" id="zProg"></span></div>
+    <div id="zList" class="chips" style="margin-top:8px"></div>
+    <div id="zQuality"></div>
+    <details style="margin-top:8px"><summary class="small">Erkannten Zeugnistext ansehen/bearbeiten</summary><textarea id="zText" style="min-height:120px;margin-top:6px"></textarea></details>
+  </div>
+
+  <h3>Dein Profil</h3>
+  <div class="card">
+    <div class="grid">
+      <div><label>Vor- und Nachname</label><input type="text" id="p_name" autocomplete="name"></div>
+      <div><label>E-Mail</label><input type="email" id="p_email" autocomplete="email"></div>
+      <div><label>Telefon</label><input type="tel" id="p_phone" autocomplete="tel"></div>
+      <div><label>Straße, Nr.</label><input type="text" id="p_street" autocomplete="street-address"></div>
+      <div><label>PLZ</label><input type="text" id="p_plz" inputmode="numeric" autocomplete="postal-code"></div>
+      <div><label>Ort</label><input type="text" id="p_city" autocomplete="address-level2"></div>
+      <div><label>Berufserfahrung (Jahre)</label><input type="number" id="p_years" min="0" max="60"></div>
+      <div><label>Verfügbar ab</label><input type="text" id="p_available" placeholder="z. B. sofort / 01.11.2026"></div>
+      <div><label>Gehaltswunsch (brutto/Monat, €)</label><input type="number" id="p_salary" min="0" step="50"></div>
+    </div>
+    <h3>Kompetenzen</h3>
+    <div class="chips" id="skillChips"></div>
+    <div class="row" style="margin-top:8px"><input type="text" id="skillAdd" placeholder="Kompetenz hinzufügen, Enter" style="flex:1;min-width:180px"><button class="btn sec small" id="skillAddBtn">Hinzufügen</button></div>
+    <h3>Berufserfahrung</h3>
+    <textarea id="p_experience" placeholder="Eine Station pro Zeile, z. B.&#10;03/2019 – heute: Elektroniker, Musterfirma GmbH, Berlin"></textarea>
+    <h3>Ausbildung</h3>
+    <textarea id="p_education" placeholder="Eine Station pro Zeile"></textarea>
+    <h3>Sprachen, Führerschein, Sonstiges</h3>
+    <textarea id="p_other" style="min-height:70px"></textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="btnSaveProfile">Profil speichern</button>
+      <button class="btn sec" id="btnPrintCV">Lebenslauf als PDF</button>
+      <button class="btn sec" data-go="berufe">Weiter: Berufe</button>
+    </div>
+  </div>
+  <div class="card" id="bsCard">
+    <h3 style="margin-top:0">Deine Stärken in eigenen Worten <span class="small muted">(empfohlen – macht Anschreiben individuell)</span></h3>
+    <p class="small muted" style="margin-top:0">Schreibe zu deinen wichtigsten Kompetenzen 1–2 Sätze mit einem konkreten Beispiel – am besten mit Zahl, Ort oder Ergebnis. Das Programm wählt pro Stelle die passendsten aus. Beispiel: „Bei Elektro Schmidt habe ich seit 2019 über 40 Photovoltaikanlagen geplant und installiert.“</p>
+    <div id="bsList"></div>
+  </div>
+</section>
+
+<!-- BERUFE -->
+<section class="view" id="v-berufe">
+  <h2>Modul 1a: Passende Berufe</h2>
+  <p class="lead">Vorschläge aus deinem Profil. Hake an, wonach gesucht werden soll. Eigene Bezeichnungen kannst du ergänzen.</p>
+  <div class="card">
+    <div id="occList"></div>
+    <div class="row" style="margin-top:10px"><input type="text" id="occAdd" placeholder="Eigene Berufsbezeichnung" style="flex:1;min-width:180px"><button class="btn sec small" id="occAddBtn">Hinzufügen</button></div>
+  </div>
+  <div class="card" id="baCard">
+    <div class="row" style="justify-content:space-between"><h3 style="margin:0">Aus dem Berufsverzeichnis der Arbeitsagentur <span class="small muted">(offline, 15.000 Bezeichnungen)</span></h3><button class="btn sec small" id="baRun">Neu auswerten</button></div>
+    <p class="small muted">Abgleich von Lebenslauf und Zeugnissen mit dem offiziellen Verzeichnis. Tippe auf „＋“, um eine Bezeichnung für die Suche zu übernehmen.</p>
+    <div id="baOut"><p class="small muted">Wird ausgewertet …</p></div>
+    <div class="row" style="margin-top:10px"><button class="btn sec small" id="bnRun">Genaue Aufstiegs- und Weiterbildungswege laden (BERUFENET, online)</button><span class="progress" id="bnProg"></span></div>
+    <div id="bnOut" style="margin-top:6px"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Wie heißen deine Fähigkeiten am Arbeitsmarkt?</h3>
+    <p class="small muted" style="margin-top:0">Sucht in der Jobbörse nach deinen Kompetenzen und zählt, unter welchen Berufsbezeichnungen diese Stellen ausgeschrieben sind (Internet nötig).</p>
+    <button class="btn sec small" id="mktRun">Marktbezeichnungen ermitteln</button><span class="progress" id="mktProg" style="margin-left:8px"></span>
+    <div id="mktOut" style="margin-top:8px"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Berufe zu deinen Kompetenzen (ESCO, EU)</h3>
+    <p class="small muted" style="margin-top:0">Welche Berufe setzen deine Kompetenzen voraus? Nutzt das europäische Verzeichnis ESCO – online oder offline nach einmaligem Import des kostenlosen ESCO-Datenpakets (Einstellungen).</p>
+    <button class="btn sec small" id="escoSkRun">Berufe zu Kompetenzen finden</button><span class="progress" id="escoSkProg" style="margin-left:8px"></span>
+    <div id="escoSkOut" style="margin-top:8px"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Weitere Bezeichnungen online suchen (ESCO, EU-Kommission)</h3>
+    <div class="row"><input type="text" id="escoQ" placeholder="z. B. Elektriker" style="flex:1;min-width:180px"><button class="btn sec small" id="escoBtn">Suchen</button></div>
+    <div id="escoRes" class="small" style="margin-top:8px"></div>
+  </div>
+  <div class="row"><button class="btn" data-go="stellen">Weiter: Stellen suchen</button></div>
+</section>
+
+<!-- STELLEN -->
+<section class="view" id="v-stellen">
+  <h2>Modul 1b: Offene Stellen</h2>
+  <div class="card">
+    <div class="grid">
+      <div><label>Ort oder PLZ</label><input type="text" id="f_where"></div>
+      <div><label>Umkreis</label><select id="f_radius"><option>5</option><option>10</option><option selected>25</option><option>50</option><option>100</option><option value="200">200 (bundesweit grob)</option></select></div>
+      <div><label>Arbeitszeit</label><select id="f_worktime"><option value="">egal</option><option value="vz">Vollzeit</option><option value="tz">Teilzeit</option><option value="snw">Schicht/Nacht/Wochenende</option><option value="ho">Homeoffice</option><option value="mj">Minijob</option></select></div>
+      <div><label>Mindestgehalt (€/Monat)</label><input type="number" id="f_salary" min="0" step="100" placeholder="leer = egal"></div>
+      <div><label>Veröffentlicht seit (Tage)</label><select id="f_days"><option value="">egal</option><option>1</option><option>7</option><option selected>30</option><option>60</option></select></div>
+      <div><label>Gleichzeitig gesuchte Berufe</label><select id="f_maxTitles"><option>1</option><option>2</option><option>3</option><option>4</option><option selected>5</option><option>6</option><option>8</option><option>10</option></select><span class="small muted">mehr = längere Suche, höheres Sperr-Risiko</span></div>
+      <div><label for="f_type">Was suchst du?</label><select id="f_type"><option value="1">Arbeit</option><option value="4">Ausbildung / duales Studium</option><option value="studium">Studium</option><option value="34">Praktikum / Trainee</option><option value="2">Selbstständigkeit</option></select></div>
+    </div>
+    <div class="row small" style="margin-top:10px">
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="f_noZeit"> Zeitarbeit ausblenden</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="f_needSalary"> nur mit Gehaltsangabe</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="f_details" checked> Stellentexte laden (genauere %)</label>
+    </div>
+    <div class="row small" style="margin-top:6px"><span class="muted">Quellen:</span>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="src_ba" checked> Arbeitsagentur</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="src_an"> Arbeitnow (EU/Remote)</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="src_az"> Adzuna (Schlüssel nötig)</label>
+      <label style="margin:0;color:var(--text)" data-src="1e"><input type="checkbox" id="src_jooble"> Jooble (Schlüssel)</label>
+      <label style="margin:0;color:var(--text)" data-src="1f"><input type="checkbox" id="src_server"> Eigener Suchserver</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="src_imp" checked> Übernommene Stellen</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="src_demo"> Demodaten</label>
+    </div>
+    <div class="row small hidden" id="serverSites" style="margin-top:6px"><span class="muted">Suchserver durchsucht:</span>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="arbeitsagentur" checked> Arbeitsagentur</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="indeed" checked> Indeed</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="stepstone" checked> StepStone</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="xing" checked> XING</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="google" checked> Google Jobs</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="linkedin"> LinkedIn (Risiko, s. Hinweis)</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="ats"> Firmen-Karriereseiten</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="arbeitnow" checked> Arbeitnow</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="kimeta"> kimeta</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="meinestadt"> meinestadt</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="jobware"> jobware</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="eures"> EURES (EU)</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="jooble" checked> Jooble</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="jobrapido"> Jobrapido</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="talent"> talent.com</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="careerjet"> Careerjet</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="bund" checked> service.bund.de (öffentlicher Dienst)</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="stellenanzeigen" checked> stellenanzeigen.de</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="monster" checked> Monster</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="interamt"> Interamt (öffentl. Dienst)</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="yourfirm"> Yourfirm (Mittelstand)</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="workwise"> Workwise</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="regiojob"> Regio-Jobanzeiger</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="jobninja"> jobninja</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="hokify"> hokify</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="absolventa"> Absolventa (Einstieg)</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="staufenbiel"> Staufenbiel (Einstieg)</label>
+      <span style="flex-basis:100%"></span><span class="muted">Branchen-Portale:</span>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="srv_branch" checked> <b>automatisch passend zum Beruf</b></label>
+      <details style="flex-basis:100%"><summary class="small muted">Branchen-Portale einzeln wählen (immer mitsuchen)</summary><div class="row small" style="margin-top:4px">
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="medijobs"> Medi-Jobs (Pflege/Medizin)</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="praktischarzt"> praktischArzt (Ärzte)</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="hogapage"> HOGAPAGE (Gastro/Hotel)</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="jobvector"> jobvector (Naturwiss./Technik)</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="heise"> heise Jobs (IT)</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="salesjob"> Salesjob (Vertrieb)</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="medienjobs"> medien.jobs (Medien)</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="greenjobs"> greenjobs (Umwelt/Energie)</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="nachhaltigejobs"> nachhaltigejobs</label>
+      </div></details>
+      <span style="flex-basis:100%"></span>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" value="websuche" checked> <b>Websuche</b> (findet auch Firmen-Seiten)</label>
+      <span style="flex-basis:100%"></span><span class="muted">Suchmaschinen für die Websuche:</span>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" data-engine="duckduckgo" checked> DuckDuckGo</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" data-engine="bing" checked> Bing</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" data-engine="brave" checked> Brave</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" data-engine="mojeek" checked> Mojeek</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" data-engine="startpage"> Startpage</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" data-engine="ecosia"> Ecosia</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" data-engine="google"> Google</label>
+      <span style="flex-basis:100%"></span>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="srv_direct" checked> Direktlink zum Arbeitgeber suchen</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="srv_strict" checked> Umkreis streng prüfen</label>
+    </div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="btnSearch">Stellen suchen</button><span class="progress" id="searchProgress"></span></div>
+  </div>
+  <div class="card hidden" id="firmCard" data-mod="1f">
+    <h3>Firmen im Umkreis direkt durchsuchen</h3>
+    <p class="small muted">Holt Betriebe mit eigener Website im Umkreis aus OpenStreetMap (passend zum Beruf), sucht dort die Karriereseite und liest die Stellen aus – auch von kleinen Firmen, die nicht in Jobbörsen inserieren. Gefundene Karriereseiten werden gespeichert und bei späteren Suchen automatisch mit durchsucht (Quelle „Firmen-Karriereseiten“). Dauer je nach Anzahl ca. 2–10 Minuten.</p>
+    <div class="row small"><span class="muted">Quellen:</span>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="fmOsm" checked> OpenStreetMap</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="fmOvt" checked> Overture Maps (u. a. Daten von Meta, Microsoft, Foursquare; dauert länger)</label></div>
+    <div class="row"><label class="small" for="fmMax" style="margin:0">Höchstens</label>
+      <select id="fmMax" style="width:auto"><option>25</option><option>50</option><option selected>100</option><option>200</option></select><span class="small muted">Firmen je Beruf</span></div>
+    <div class="row" style="margin-top:8px"><button class="btn" id="fmRun">Firmen im Umkreis durchsuchen</button><button class="btn sec small hidden" id="fmCancel">Abbrechen</button><span class="progress" id="fmProg"></span></div>
+    <div id="fmOut" class="small" style="margin-top:6px"></div>
+    <div class="row small" style="margin-top:8px" id="fmMaps"></div>
+    <p class="small muted" style="margin-top:6px">Firmendaten © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap-Mitwirkende</a> (ODbL) und <a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps Foundation</a> (CDLA Permissive 2.0, Foursquare-Anteil Apache 2.0). Nicht jede Firma ist dort eingetragen – die Liste ist nicht vollständig. Google Maps darf nach seinen Nutzungsbedingungen nicht automatisch ausgelesen werden; deshalb gibt es dafür nur Links zum Selbst-Ansehen.</p>
+  </div>
+  <div class="card" id="portalCard" data-mod="1c">
+    <h3 style="margin-top:0">Modul 1c: Auch in anderen Portalen suchen</h3>
+    <p class="small muted" style="margin-top:0">Öffnet die Suche mit deinen Begriffen im jeweiligen Portal (Weg A). Mit dem Knopf „→ Bewerbungslotse“ (Weg B, Menü „Import“) holst du die dort angezeigten Stellen anschließend hierher – inklusive Passung in %.</p>
+    <div class="row" id="portalLinks"></div>
+    <div class="row" style="margin-top:8px"><button class="btn sec small" id="openAllPortals">Alle Portale für alle Berufe öffnen</button></div>
+  </div>
+  <div class="row" style="justify-content:space-between;margin:8px 0">
+    <span id="resultCount" class="muted small"></span>
+    <div class="row"><label for="sortBy" style="margin:0">Sortieren:</label>
+      <select id="sortBy" style="width:auto"><option value="score">Passung (höchste zuerst)</option><option value="date">Neueste zuerst</option><option value="dist">Entfernung (nächste zuerst)</option><option value="salary">Gehalt (höchstes zuerst)</option><option value="title">Titel A–Z</option><option value="company">Arbeitgeber A–Z</option></select>
+      <label for="minScore" style="margin:0">ab</label><select id="minScore" style="width:auto"><option value="0">0 %</option><option value="40">40 %</option><option value="60">60 %</option><option value="80">80 %</option></select></div>
+  </div>
+  <div id="results"></div>
+  <p class="small muted" id="attrib"></p>
+</section>
+
+<!-- BEWERBUNG -->
+<section class="view" id="v-bewerbung">
+  <h2>Modul 2: Bewerbungstext</h2>
+  <div class="card" id="appJob"><p class="muted">Wähle zuerst in der Stellenliste „Bewerbung erstellen“.</p></div>
+  <div class="card">
+    <div class="grid">
+      <div><label>Vorlage</label><select id="tplSel"></select></div>
+      <div><label>Ansprechperson (falls bekannt)</label><input type="text" id="contactPerson" placeholder="z. B. Frau Müller"></div>
+    </div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="btnGen">Anschreiben erstellen</button><button class="btn sec small" id="btnVariant">Andere Formulierung</button><button class="btn sec" id="btnGenAI" data-needs="ai">Mit KI schreiben (optional)</button></div>
+    <details data-needs="ai" style="margin-top:8px"><summary class="small">Eigene Stilvorlage für die KI (optional)</summary>
+      <p class="small muted">Füge ein früheres, selbst geschriebenes Anschreiben ein. Die KI übernimmt Tonfall und Satzbau – nicht den Inhalt.</p>
+      <textarea id="styleSample" style="min-height:100px"></textarea></details>
+    <label for="letter" style="margin-top:10px">Anschreiben (bearbeitbar)</label>
+    <textarea id="letter" style="min-height:340px"></textarea>
+    <div id="styleOut" class="small" style="margin-top:8px"></div>
+    <details style="margin-top:8px"><summary class="small">Woher stammt welche Aussage?</summary><div id="srcOut" class="small" style="margin-top:6px"></div></details>
+    <p class="small muted">Bitte vor dem Absenden lesen und in eigenen Worten anpassen. Kein Programm kann garantieren, dass ein Text „nicht nach KI klingt“ – überzeugend sind echte Details aus deinem Berufsleben.</p>
+  </div>
+  <div class="card" data-mod="3">
+    <h3 style="margin-top:0">Modul 3: Absenden</h3>
+    <div class="row" id="applyActions"></div>
+    <p class="small muted">E-Mail-Programme erlauben per Link keine automatischen Anhänge. Lebenslauf und Anschreiben (PDF) bitte selbst anhängen.</p>
+  </div>
+</section>
+
+<!-- TRACKER -->
+<section class="view" id="v-tracker">
+  <h2>Modul 3c: Meine Bewerbungen</h2>
+  <p class="lead">Gemerkte Stellen und Bewerbungen wie auf einer Pinnwand: Karten von „Gemerkt“ über „Beworben“ bis „Angebot“ verschieben – am PC per Ziehen, auf dem Handy mit den Pfeilen. Die ganze Anzeige wird gespeichert, damit du dich auch später noch bewerben kannst.</p>
+  <div class="notice warn hidden" id="dueBanner2"></div>
+  <div class="row" style="margin-bottom:10px;align-items:center">
+    <div class="seg" id="trackViewSeg"><button type="button" data-v="board">Pinnwand</button><button type="button" data-v="list">Liste</button></div>
+    <input type="search" id="trackFilter" placeholder="Suchen …" style="max-width:220px">
+    <button class="btn sec small" id="btnCSV">Als CSV exportieren</button>
+    <button class="btn sec small" id="btnBackup">Sicherung speichern</button>
+    <label class="btn sec small" style="margin:0">Sicherung laden<input type="file" id="restoreFile" accept=".json,application/json" class="hidden"></label>
+  </div>
+  <div id="trackDetail" class="hidden"></div>
+  <div id="trackBoard" class="kboard"></div>
+  <div class="card hidden" id="trackTableCard" style="overflow-x:auto"><table id="trackTable"></table></div>
+</section>
+
+<!-- AUTO -->
+<section class="view" id="v-auto">
+  <h2>Modul 3d: Automatischer Versand (optional)</h2>
+  <div class="notice"><b>Bitte lesen:</b> Ein Browser kann E-Mails nicht selbst mit Anhang verschicken und läuft im Hintergrund nicht zuverlässig (vor allem auf iPhone). Der Auto-Versand übergibt deshalb jede Bewerbung an <b>deinen eigenen Webhook</b> (z. B. n8n, Make, Zapier), der sie mit deinem E-Mail-Konto verschickt. Es werden nur Stellen mit erkannter E-Mail-Adresse berücksichtigt. Bewerbungsformulare von Portalen werden nicht automatisch ausgefüllt. Standard ist der Testmodus: nichts wird gesendet.</div>
+  <div class="card">
+    <div class="grid">
+      <div><label>Mindest-Passung (%)</label><input type="number" id="a_min" value="80" min="0" max="100"></div>
+      <div><label>Höchstens pro Lauf</label><input type="number" id="a_max" value="5" min="1" max="50"></div>
+      <div><label>Vorlage</label><select id="a_tpl"></select></div>
+      <div><label>Ausschließen (Firmen/Wörter, Komma)</label><input type="text" id="a_excl" placeholder="z. B. Zeitarbeit, Personalservice"></div>
+    </div>
+    <div class="row small" style="margin-top:10px">
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="a_dry" checked> Testmodus (nur anzeigen, nichts senden)</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="a_confirm" checked> Vor dem Senden einzeln bestätigen</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="a_ai"> Texte mit KI anpassen</label>
+    </div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="btnAuto">Auto-Lauf starten</button><span class="progress" id="autoProgress"></span></div>
+  </div>
+  <div id="autoLog"></div>
+</section>
+
+<!-- IMPORT (Weg B) -->
+<section class="view" id="v-import">
+  <h2>Modul 1d: Stellen aus Portalen übernehmen</h2>
+  <p class="lead">Du suchst ganz normal bei StepStone, Indeed, LinkedIn, XING oder auf einer Firmen-Website. Ein Klick auf „→ Bewerbungslotse“ übernimmt die angezeigten Stellen hierher. Gelesen wird nur, was du selbst auf dem Bildschirm hast.</p>
+  <div class="card">
+    <h3 style="margin-top:0">Variante 1: Lesezeichen-Knopf (PC, Android, iPhone)</h3>
+    <ol class="small" style="padding-left:18px">
+      <li><b>PC:</b> Den Knopf unten in die Lesezeichenleiste ziehen.</li>
+      <li><b>Handy:</b> Beliebige Seite als Lesezeichen speichern, Lesezeichen bearbeiten und als Adresse den Code aus „Code kopieren“ einfügen.</li>
+      <li>Im Portal die Trefferliste oder eine Stellenanzeige öffnen und das Lesezeichen antippen.</li>
+    </ol>
+    <div class="row"><a class="btn" id="bmLink" href="#">→ Bewerbungslotse</a><button class="btn sec small" id="bmCopy">Code kopieren</button><label class="small" style="margin:0;color:var(--text)"><input type="checkbox" id="bmDetails"> Stellentexte nachladen (langsamer, genauere %; nie auf LinkedIn)</label></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Variante 2: Browser-Erweiterung (Chrome, Edge, Firefox am PC)</h3>
+    <p class="small" style="margin-top:0">Zeigt auf den Portalen automatisch den Knopf „→ Bewerbungslotse“ an. Installation: Ordner <code>erweiterung</code> aus dem Download entpacken → <code>chrome://extensions</code> → Entwicklermodus → „Entpackte Erweiterung laden“. Danach in den Optionen der Erweiterung die Adresse dieser App eintragen:</p>
+    <div class="row"><code id="appAddr" style="word-break:break-all"></code><button class="btn sec small" id="addrCopy">Adresse kopieren</button></div>
+  </div>
+  <div class="card" id="mailCard">
+    <h3 style="margin-top:0">Jobalarm-E-Mails auswerten <span class="small muted">(regelkonform – die Portale schicken dir die Stellen selbst)</span></h3>
+    <p class="small muted" style="margin-top:0">Richte bei StepStone, Indeed, LinkedIn, XING oder der Arbeitsagentur einen Jobalarm ein. Die Stellen aus diesen E-Mails holt der Bewerbungslotse hierher und bewertet sie. Nur im Programm auf dem PC.</p>
+    <div class="row"><label class="btn sec small" style="margin:0">E-Mails als Datei (.eml) wählen<input type="file" id="emlFile" accept=".eml,message/rfc822" multiple class="hidden"></label><span class="small muted">In Outlook/Thunderbird: E-Mail markieren → „Speichern unter“ bzw. in einen Ordner ziehen.</span></div>
+    <details style="margin-top:8px"><summary class="small">Oder direkt aus dem Postfach lesen (IMAP, nur lesend)</summary>
+      <div class="grid" style="margin-top:6px"><div><label>IMAP-Server</label><input type="text" id="imHost" placeholder="z. B. imap.gmx.net"></div><div><label>E-Mail / Benutzer</label><input type="text" id="imUser" autocomplete="username"></div>
+        <div><label>Passwort (am besten App-Passwort)</label><input type="password" id="imPass" autocomplete="current-password"></div><div><label>Zeitraum (Tage)</label><input type="number" id="imDays" value="14" min="1" max="90"></div></div>
+      <p class="small muted">Das Passwort wird nicht gespeichert, nur für diesen Abruf an das Programm auf deinem PC übergeben. Viele Anbieter (Gmail, GMX, web.de, Outlook) verlangen ein eigenes App-Passwort und die Freischaltung von IMAP in den Postfach-Einstellungen.</p>
+      <button class="btn sec small" id="imRun">Postfach lesen</button></details>
+    <div class="small" id="mailInfo" style="margin-top:8px"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Variante 3: Einfügen</h3>
+    <p class="small muted" style="margin-top:0">Falls sich die App nicht automatisch öffnet: kopierten Link oder JSON (z. B. vom KI-Agenten) hier einfügen.</p>
+    <textarea id="impPaste" style="min-height:80px" placeholder="…#import=… oder JSON"></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn" id="impBtn">Übernehmen</button><button class="btn danger small" id="impClear">Übernommene Stellen löschen</button><span class="small muted" id="impInfo"></span></div>
+  </div>
+  <div class="notice small"><b>Hinweis:</b> LinkedIn verbietet in seinen Regeln Software und Erweiterungen, die Inhalte auslesen. Die Nutzung dort erfolgt auf eigenes Risiko (Kontosperrung möglich). Stellentexte werden auf LinkedIn nie automatisch nachgeladen.</div>
+</section>
+
+<!-- KI-AGENT (Weg C) -->
+<section class="view" id="v-agent">
+  <h2>Modul 3e: KI-Browser-Agent (optional)</h2>
+  <p class="lead">Ein KI-Agent (z. B. Claude in Chrome) bedient deinen eigenen, angemeldeten Browser: Er sucht in den Portalen, bewertet Stellen und kann Bewerbungsformulare ausfüllen. Die App erstellt dafür einen genauen Auftrag mit deinem Profil und deinen Regeln.</p>
+  <div class="notice small"><b>Bitte lesen:</b> Kostet KI-Nutzung beim Anbieter. Portale wie LinkedIn und Indeed verbieten Automatisierung; Kontosperrung ist möglich. Agenten machen Fehler – darum ist „vor dem Absenden fragen“ voreingestellt. Du bleibst für jede Bewerbung verantwortlich.</div>
+  <div class="card">
+    <div class="grid">
+      <div><label>Aufgabe</label><select id="ag_mode"><option value="search">Nur suchen und Ergebnisse zurückgeben</option><option value="apply">Suchen und bewerben</option><option value="selected">Auf gemerkte Stellen bewerben</option></select></div>
+      <div><label>Portale</label><input type="text" id="ag_portals" value="StepStone, Indeed, XING, Arbeitsagentur, LinkedIn"></div>
+      <div><label>Mindest-Passung (%)</label><input type="number" id="ag_min" value="80" min="0" max="100"></div>
+      <div><label>Höchstens Bewerbungen</label><input type="number" id="ag_max" value="5" min="1" max="30"></div>
+    </div>
+    <div class="row small" style="margin-top:10px">
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="ag_confirm" checked> Vor jedem Absenden fragen</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="ag_direct" checked> Firmen-Website bevorzugen</label>
+      <label style="margin:0;color:var(--text)"><input type="checkbox" id="ag_noeasy"> Keine „Schnellbewerbung“ (Easy Apply)</label>
+    </div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="ag_build">Auftrag erstellen</button><button class="btn sec" id="ag_copy">Kopieren</button></div>
+    <textarea id="ag_prompt" style="min-height:320px;margin-top:10px" readonly></textarea>
+    <p class="small muted">Verwendung: Claude-Erweiterung in Chrome öffnen (oder einen anderen Browser-Agenten), Auftrag einfügen, Lebenslauf-PDF bereithalten. Das Ergebnis (JSON) unter „Import“ einfügen – die Stellen erscheinen dann in der Liste und der Übersicht.</p>
+  </div>
+</section>
+
+<!-- EINSTELLUNGEN -->
+<section class="view" id="v-settings">
+  <h2>Einstellungen</h2>
+  <div class="card">
+    <h3 style="margin-top:0">Verbindung (CORS-Proxy)</h3>
+    <p class="small muted" style="margin-top:0">Manche Schnittstellen erlauben keinen direkten Aufruf aus dem Browser. Dann hier die Adresse deines eigenen Proxys eintragen (Anleitung in der README, kostenlos per Cloudflare Worker). Leer = direkter Aufruf.</p>
+    <input type="url" id="s_proxy" placeholder="https://dein-proxy.deinname.workers.dev">
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Adzuna (optional)</h3>
+    <p class="small muted" style="margin-top:0">Kostenloser Entwicklerschlüssel unter developer.adzuna.com. Für private Nutzung begrenzt (laut Adzuna u. a. 250 Abfragen/Tag).</p>
+    <div class="grid"><div><label>App-ID</label><input type="text" id="s_azid"></div><div><label>App-Key</label><input type="password" id="s_azkey"></div></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Eigener Suchserver (optional)</h3>
+    <p class="small muted" style="margin-top:0">Kostenlose Metasuche: Arbeitsagentur, Indeed, StepStone, XING, Google Jobs, LinkedIn, Arbeitnow, kimeta, meinestadt, jobware und Firmen-Karriereseiten; führt doppelte Anzeigen zusammen und sucht den Direktlink zum Arbeitgeber. Läuft auf deinem PC oder Server (Ordner <code>suchserver</code>, Anleitung dort).</p>
+    <div class="grid"><div><label>Adresse</label><input type="url" id="s_srv" placeholder="http://127.0.0.1:8787"></div><div><label>Zugangs-Token</label><input type="password" id="s_srvtok"></div></div>
+    <div class="row" style="margin-top:8px"><button class="btn sec small" id="srvTest">Verbindung testen</button><span class="small" id="srvInfo"></span></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Jooble (optional)</h3>
+    <p class="small muted" style="margin-top:0">Kostenloser Schlüssel auf Antrag (jooble.org/api/about). Braucht den CORS-Proxy oben. Ohne Schlüssel: eigener Suchserver nutzen.</p>
+    <div class="grid"><div><label>Jooble-Schlüssel</label><input type="password" id="s_jooble"></div><div><label>Jooble-Adresse</label><input type="text" id="s_joohost" placeholder="de.jooble.org"></div></div>
+  </div>
+  <div class="card" id="ollamaCard">
+    <h3 style="margin-top:0">Kostenlose lokale KI (Ollama) <span class="small muted">– optional, läuft komplett auf deinem PC</span></h3>
+    <p class="small muted" style="margin-top:0">Der Assistent prüft deinen PC, sucht im Internet das beste kostenlose Modell, das darauf gut läuft, lädt es auf Wunsch herunter und verbindet es mit der App. Lebenslauf und Anschreiben verlassen dabei nicht deinen Computer. Nur im Programm auf dem PC verfügbar.</p>
+    <div class="row"><button class="btn" id="olStart">Assistent starten</button><span class="progress" id="olProg"></span></div>
+    <div id="olOut" style="margin-top:10px"></div>
+    <hr>
+    <label style="color:var(--text)"><input type="checkbox" id="s_semantic"> <b>Vergleich nach Bedeutung</b> (Weg 6, optional): Stellen und Profil werden zusätzlich inhaltlich verglichen – z. B. passt „Stromnetze instand halten“ dann auch zu „Wartung Elektroanlagen“</label>
+    <div class="row small"><label for="s_embModel" style="margin:0">Modell</label><input type="text" id="s_embModel" value="nomic-embed-text" style="max-width:200px"><button class="btn sec small" id="embPull">Modell laden</button><span class="progress" id="embProg"></span></div>
+    <p class="small muted">Braucht das Programm auf dem PC und Ollama. Das Vergleichsmodell ist klein (nomic-embed-text laut Ollama-Bibliothek ca. 0,3 GB – nicht selbst geprüft). Wirkung: 25 % der Passung, sichtbar unter „Warum x %?“. Alles bleibt auf dem PC.</p>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">KI (optional)</h3>
+    <p class="small muted" style="margin-top:0">Nur wenn eingeschaltet. Profil- und Stellentext werden dann an den gewählten Anbieter gesendet. Der Schlüssel bleibt in diesem Browser.</p>
+    <label class="small" style="color:var(--text)"><input type="checkbox" id="s_aion"> KI-Funktionen einschalten</label>
+    <div class="grid" style="margin-top:8px">
+      <div><label>Anbieter</label><select id="s_aiprov"><option value="anthropic">Anthropic (Claude)</option><option value="openai">OpenAI</option><option value="compat">OpenAI-kompatibel (z. B. Ollama lokal)</option></select></div>
+      <div><label>Modell</label><input type="text" id="s_aimodel" placeholder="Modellname laut Anbieter"></div>
+      <div><label>API-Schlüssel</label><input type="password" id="s_aikey"></div>
+      <div><label>Eigene Adresse (nur kompatibel)</label><input type="url" id="s_aiurl" placeholder="http://localhost:11434/v1"></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Webhook für Auto-Versand (optional)</h3>
+    <p class="small muted" style="margin-top:0">Empfängt pro Bewerbung ein JSON mit Empfänger, Betreff, Text und Stellendaten. Den Versand samt Anhang übernimmt dein Workflow.</p>
+    <input type="url" id="s_hook" placeholder="https://…/webhook/bewerbung">
+  </div>
+  <div class="card" id="compCard">
+    <h3 style="margin-top:0">Firmen-Karriereseiten (Direktlinks zum Arbeitgeber)</h3>
+    <p class="small muted" style="margin-top:0">Firmen mit öffentlicher Stellenbörse (Personio, Greenhouse, Lever, SmartRecruiters, Recruitee) werden direkt durchsucht – Treffer führen immer zur Firma. Das Programm kann passende Firmen in deiner Region selbst finden. Nur im Programm auf dem PC.</p>
+    <div class="grid"><div><label>Region</label><input type="text" id="cmpWhere" placeholder="z. B. Berlin"></div><div><label>Branche/Stichwort (optional)</label><input type="text" id="cmpQ" placeholder="z. B. Elektro"></div></div>
+    <div class="row" style="margin-top:8px"><button class="btn sec small" id="cmpFind">Firmen in der Region finden</button><span class="progress" id="cmpProg"></span></div>
+    <div id="cmpOut" style="margin-top:8px"></div>
+  </div>
+  <div class="card" id="escoImpCard">
+    <h3 style="margin-top:0">ESCO-Datenpaket (optional, für Offline-Betrieb)</h3>
+    <p class="small muted" style="margin-top:0">Einmalig kostenlos herunterladen: <a href="https://esco.ec.europa.eu/en/use-esco/download" target="_blank" rel="noopener">esco.ec.europa.eu → Download</a> → Sprache „de“, Format „CSV“, Inhalt „Klassifikation“. Die ZIP-Datei hier auswählen. Nur im Programm auf dem PC (lokaler Modus) möglich.</p>
+    <div class="row"><label class="btn sec small" style="margin:0">ESCO-ZIP auswählen<input type="file" id="escoZip" accept=".zip" class="hidden"></label><span class="small" id="escoImpInfo"></span></div>
+  </div>
+  <div class="card" id="selftestCard">
+    <h3 style="margin-top:0">Selbsttest</h3>
+    <p class="small muted" style="margin-top:0">Prüft jede Quelle und Suchmaschine mit einer Probesuche und zeigt, was funktioniert. Den Bericht kannst du speichern und weitergeben, damit die Suche verbessert werden kann. Er enthält <b>keine persönlichen Daten</b>, nur Suchbegriff, Ort und Ergebnisse. Dauer ca. 1–2 Minuten.</p>
+    <div class="grid"><div><label>Probe-Beruf</label><input type="text" id="st_q" value="Elektriker"></div><div><label>Probe-Ort</label><input type="text" id="st_where" value="Berlin"></div></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="stRun">Selbsttest starten</button><button class="btn sec small hidden" id="stSave">Bericht speichern</button><button class="btn sec small hidden" id="stCopy">Bericht kopieren</button><span class="progress" id="stProg"></span></div>
+    <div id="stOut" style="overflow-x:auto;margin-top:10px"></div>
+  </div>
+  <div class="card" id="trackSettings">
+    <h3>Meine Bewerbungen: Erinnerungen, Sicherung, Lernen</h3>
+    <div class="grid">
+      <div><label for="s_followDays">Nachfassen nach … Tagen</label><input type="number" id="s_followDays" min="1" max="60" value="14"><span class="small muted">Nach „Beworben“ wird automatisch eine Wiedervorlage gesetzt.</span></div>
+    </div>
+    <label style="color:var(--text)"><input type="checkbox" id="s_notify"> Erinnerungen als Mitteilung anzeigen, wenn die App geöffnet wird</label>
+    <p class="small muted">Browser zeigen Mitteilungen nur bei geöffneter App. Für Erinnerungen ohne App: in den Details einer Bewerbung „in Kalender“ wählen (.ics-Datei für jeden Kalender).</p>
+    <p class="small"><span id="lastBackup"></span> Die Sicherung enthält Profil, Lebenslauf-Text, Zeugnisse, Bewerbungen, übernommene Stellen und Einstellungen – <b>ohne</b> Schlüssel, Token und Passwörter. Im Programm auf dem PC wird zusätzlich automatisch eine Sicherung im Datenordner angelegt.</p>
+    <hr>
+    <label style="color:var(--text)"><input type="checkbox" id="s_robotsFirms" checked> robots.txt von Firmen-Websites beachten (empfohlen)</label>
+    <label style="color:var(--text)"><input type="checkbox" id="s_robotsSearch"> robots.txt auch bei Portalen und Suchmaschinen beachten</label>
+    <p class="small muted">Websites legen in ihrer robots.txt fest, was Programme automatisch abrufen dürfen. Beachten ist die rücksichtsvolle Variante; bei Portalen und Suchmaschinen fallen dann viele Quellen weg, weil sie automatische Abrufe dort meist ausschließen.</p>
+    <hr>
+    <label style="color:var(--text)"><input type="checkbox" id="s_learn"> <b>Aus meinem Verhalten lernen</b> (Passung an meine Vorlieben anpassen)</label>
+    <p class="small muted">Wenn eingeschaltet: Merken, Bewerben und Gespräche heben ähnliche Stellen an, „Nicht interessant“ senkt sie – um höchstens ±15 Punkte, sichtbar unter „Warum x %?“. Grundlage sind Wörter im Stellentitel, Firma, Quelle, Arbeitszeit und Entfernung. Alles bleibt auf diesem Gerät; ausgeschaltet wird nichts gesammelt.</p>
+    <div class="small" id="learnOut"></div>
+    <div class="row" style="margin-top:6px"><button class="btn sec small" id="learnReset">Gelerntes löschen</button><button class="btn sec small" id="dismissReset">Ausgeblendete Stellen wieder anzeigen</button></div>
+  </div>
+  <div class="row">
+    <button class="btn" id="btnSaveSettings">Einstellungen speichern</button>
+    <button class="btn sec" id="btnBackup2">Sicherung speichern</button>
+    <label class="btn sec" style="margin:0">Sicherung laden<input type="file" id="restoreFile2" accept=".json,application/json" class="hidden"></label>
+    <button class="btn danger" id="btnReset">Alle Daten löschen</button>
+  </div>
+  <div class="card" id="infoCard">
+    <h3 style="margin-top:0">Quellen, Lizenzen und Rechtliches</h3>
+    <ul class="small" style="padding-left:18px;margin:0">
+      <li>Stellen: Jobbörse der Bundesagentur für Arbeit (öffentliche Schnittstelle), Arbeitnow, EURES, Adzuna/Jooble (eigener Schlüssel), Jobalarm-E-Mails; im Programm zusätzlich Portale und Suchmaschinen – maßgeblich ist immer die Originalanzeige.</li>
+      <li>Berufsverzeichnis: Berufeliste der Bundesagentur für Arbeit (KldB 2010), bezogen über das MIT-lizenzierte Paket <i>@cross-solution/strapi-plugin-bfa</i>; BERUFENET der Bundesagentur für Arbeit.</li>
+      <li>ESCO – European Skills, Competences, Qualifications and Occupations, © Europäische Union.</li>
+      <li>Postleitzahlen/Entfernungen: GeoNames (<a href="https://www.geonames.org" target="_blank" rel="noopener">geonames.org</a>, CC BY 4.0); Karten-Suche: © OpenStreetMap-Mitwirkende (Nominatim).</li>
+      <li>Studienangebote: Studiensuche der Bundesagentur für Arbeit.</li>
+      <li>Texterkennung: Tesseract.js (Apache-2.0), läuft auf dem Gerät.</li>
+      <li>Firmen im Umkreis: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap-Mitwirkende</a>, Open Database License (ODbL), abgefragt über die Overpass API.</li>
+      <li>Programmbibliotheken: pdf.js, mammoth.js, Tesseract.js, FastAPI, JobSpy (MIT) u. a.</li>
+      <li>Lokale KI: Ollama; Lizenz des jeweiligen Modells auf der Modellseite beachten.</li>
+    </ul>
+    <p class="small" style="margin-bottom:0"><a href="rechtliches/impressum.html">Impressum</a> · <a href="rechtliches/datenschutz.html">Datenschutz</a></p>
+  </div>
+  <p class="small muted" style="margin-top:16px">Bewerbungslotse ist kostenlos und quelloffen. Keine Gewähr für Vollständigkeit oder Richtigkeit der Stellendaten; maßgeblich ist die Originalanzeige.</p>
+</section>
+</main>
+
+<div id="print"></div>
+<div id="toast"></div>
+<script src="data.js"></script>
+<!-- berufe-ba.js wird bei Bedarf nachgeladen (ca. 1 MB) -->
+<script src="app.js"></script>
+</body>
+</html>

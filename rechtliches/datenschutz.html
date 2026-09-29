@@ -1,0 +1,33 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Datenschutz – Bewerbungslotse</title>
+<style>body{font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;max-width:760px;margin:32px auto;padding:0 16px;color:#1c2430;background:#fff}h1{font-size:26px}h2{font-size:18px;margin-top:28px}.todo{background:#fbf0da;padding:2px 6px;border-radius:4px}td,th{text-align:left;vertical-align:top;padding:6px;border-bottom:1px solid #ddd}table{border-collapse:collapse;width:100%;font-size:14px}@media (prefers-color-scheme:dark){body{background:#12161c;color:#e6ebf1}.todo{background:#3a2f18}td,th{border-color:#333}}</style></head>
+<body><p><a href="../index.html">← zurück zur App</a></p>
+<h1>Datenschutzerklärung</h1>
+<p class="todo">VORLAGE – beschreibt die technische Funktionsweise des Bewerbungslotsen. Vor der Veröffentlichung ergänzen (Verantwortlicher, Hosting-Anbieter) und rechtlich prüfen lassen. Keine Rechtsberatung.</p>
+<h2>1. Verantwortlicher</h2>
+<p><span class="todo">[Name, Anschrift, E-Mail wie im Impressum]</span></p>
+<h2>2. Grundsatz: Deine Daten bleiben auf deinem Gerät</h2>
+<p>Lebenslauf, Zeugnisse, Profil, Anschreiben und die Übersicht deiner Bewerbungen werden ausschließlich im Speicher deines Browsers (localStorage) bzw. im Programm auf deinem Computer gespeichert. Es gibt kein Benutzerkonto und keinen Server des Betreibers, der diese Daten empfängt. Texterkennung (Fotos, gescannte PDFs) läuft auf deinem Gerät. Es werden keine Cookies zu Werbe- oder Analysezwecken gesetzt und kein Tracking eingesetzt.</p>
+<h2>3. Hosting der Online-Version</h2>
+<p>Beim Aufruf der Online-Version verarbeitet der Hosting-Anbieter technisch notwendige Daten (z. B. IP-Adresse, Zeitpunkt, abgerufene Datei) in Server-Protokollen. Anbieter: <span class="todo">[z. B. GitHub Pages, GitHub Inc. – Link zu dessen Datenschutzhinweisen]</span>. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO (sichere Bereitstellung).</p>
+<h2>4. Verbindungen zu Dritten – nur bei Nutzung der jeweiligen Funktion</h2>
+<table><tr><th>Dienst</th><th>Wann</th><th>Welche Daten</th></tr>
+<tr><td>jsDelivr (Programmbibliotheken für PDF, Word, Texterkennung)</td><td>beim Einlesen eines Dokuments (Online-Version)</td><td>IP-Adresse, Browserdaten; keine Dokumentinhalte</td></tr>
+<tr><td>Jobbörse der Bundesagentur für Arbeit, BERUFENET, Arbeitnow, EURES, ESCO (EU-Kommission)</td><td>bei Stellen- bzw. Berufssuche</td><td>Suchbegriff, Ort, Umkreis; IP-Adresse</td></tr>
+<tr><td>Adzuna, Jooble (nur mit eigenem Schlüssel)</td><td>wenn eingeschaltet</td><td>Suchbegriff, Ort, eigener Schlüssel</td></tr>
+<tr><td>Stellenportale und Suchmaschinen (StepStone, Indeed, XING, LinkedIn, DuckDuckGo, Bing u. a.)</td><td>Programm auf dem PC bzw. beim Öffnen von Links</td><td>Suchbegriff, Ort; IP-Adresse deines Anschlusses</td></tr>
+<tr><td>Eigener CORS-Proxy (Cloudflare Worker, optional)</td><td>wenn eingetragen</td><td>Suchanfragen an die oben genannten Schnittstellen</td></tr>
+<tr><td>KI-Anbieter (Anthropic, OpenAI; optional, eigener Schlüssel)</td><td>nur wenn KI eingeschaltet</td><td>Profil-, Zeugnis- und Stellentext für die jeweilige Anfrage</td></tr>
+<tr><td>Ollama (lokale KI, optional)</td><td>nur wenn eingerichtet</td><td>keine Übertragung ins Internet – läuft auf deinem PC (Modell-Download von ollama.com)</td></tr>
+<tr><td>Eigener Webhook (Auto-Versand, optional)</td><td>nur wenn eingerichtet</td><td>Bewerbungstext, Empfänger, Stellendaten, deine Kontaktdaten</td></tr>
+<tr><td>E-Mail-Postfach (IMAP, optional)</td><td>nur beim Abruf von Jobalarm-Mails</td><td>Zugangsdaten nur für diesen Abruf, nicht gespeichert; gelesen werden nur Mails von Jobportalen</td></tr>
+<tr><td>GeoNames, OpenStreetMap Nominatim (Programm auf dem PC)</td><td>Entfernungsberechnung</td><td>Ortsnamen bzw. einmaliger Download der Postleitzahlen</td></tr>
+<tr><td>Studiensuche der Bundesagentur für Arbeit</td><td>Studienangebote suchen (nur bei „Studium“)</td><td>Suchbegriff, Ort mit Koordinaten, Umkreis</td></tr>
+<tr><td>OpenStreetMap Overpass API (Programm auf dem PC, nur auf Knopfdruck)</td><td>Firmen im Umkreis finden</td><td>Koordinaten des Suchorts, Umkreis, Branchenmerkmale – keine Bewerberdaten</td></tr>
+<tr><td>Overture Maps (öffentlicher Speicher bei Amazon Web Services, Programm auf dem PC, nur auf Knopfdruck)</td><td>Firmen im Umkreis finden</td><td>Kartenausschnitt des Suchorts – keine Bewerberdaten</td></tr>
+<tr><td>Websites von Firmen im Umkreis (Programm auf dem PC, nur auf Knopfdruck)</td><td>Karriereseiten und Stellen auslesen</td><td>normaler Seitenabruf (IP-Adresse des PCs), keine Bewerberdaten</td></tr></table>
+<h2>5. Bewerbungen versenden</h2>
+<p>Beim Versand per E-Mail-Programm oder über Firmen-Websites gelten die Datenschutzbestimmungen des jeweiligen Anbieters bzw. Arbeitgebers.</p>
+<h2>6. Deine Rechte</h2>
+<p>Da der Betreiber keine personenbezogenen Daten aus der App speichert, kannst du alle Daten jederzeit selbst löschen: App → Einstellungen → „Alle Daten löschen“ bzw. Programmordner/Datenordner <code>~/.bewerbungslotse</code> entfernen. Rechte nach Art. 15–21 DSGVO gegenüber dem Verantwortlichen bleiben unberührt; Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde.</p>
+<p><span class="todo">Stand: [Datum]</span></p>
+</body></html>

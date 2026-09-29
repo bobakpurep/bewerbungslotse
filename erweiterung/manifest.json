@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Bewerbungslotse – Stellen übernehmen",
+  "version": "1.0.0",
+  "description": "Übernimmt die im Portal angezeigten Stellen (StepStone, Indeed, LinkedIn, XING u. a.) in die Bewerbungslotse-App. Liest nur die geöffnete Seite, sendet nichts an Dritte.",
+  "permissions": ["storage"],
+  "options_page": "options.html",
+  "icons": { "128": "icon-128.png" },
+  "content_scripts": [{
+    "matches": [
+      "https://*.stepstone.de/*", "https://*.indeed.com/*", "https://*.linkedin.com/jobs/*",
+      "https://*.xing.com/jobs/*", "https://*.arbeitsagentur.de/jobsuche/*", "https://*.jobware.de/*",
+      "https://*.meinestadt.de/*", "https://*.kimeta.de/*", "https://*.monster.de/*", "https://*.glassdoor.de/*"
+    ],
+    "js": ["extractor.js", "content.js"],
+    "run_at": "document_idle"
+  }],
+  "browser_specific_settings": { "gecko": { "id": "bewerbungslotse@example.org", "strict_min_version": "115.0" } }
+}
