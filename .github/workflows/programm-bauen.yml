@@ -1,0 +1,44 @@
+# Baut automatisch die Programmdateien für Windows, macOS und Linux (kostenlos auf GitHub).
+# Auslösen: Tag setzen (z. B. v1.0.0) oder unter „Actions“ → „Programm bauen“ → „Run workflow“.
+name: Programm bauen
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  bauen:
+    strategy:
+      fail-fast: false   # schlägt ein System fehl, laufen die anderen trotzdem zu Ende
+      matrix:
+        include:
+          - os: windows-latest
+            datei: Bewerbungslotse.exe
+            name: Bewerbungslotse-Windows.exe
+          - os: macos-latest
+            datei: Bewerbungslotse
+            name: Bewerbungslotse-Mac
+          - os: ubuntu-latest
+            datei: Bewerbungslotse
+            name: Bewerbungslotse-Linux
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: pip install -r suchserver/requirements.txt pyinstaller
+      - run: pyinstaller --noconfirm programm/bewerbungslotse.spec
+      - name: Umbenennen
+        shell: bash
+        run: mv "dist/${{ matrix.datei }}" "dist/${{ matrix.name }}"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: ${{ matrix.name }}
+          path: dist/${{ matrix.name }}
+      - if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: dist/${{ matrix.name }}
